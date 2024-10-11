@@ -13,10 +13,11 @@ Edited for LOCI, September 2024
 """
 
 #from curses import resize_term
-from pickle import FALSE
 import numpy as np
 import os
 import sys
+import scipy
+from scipy import ndimage
 import shutil
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QFileDialog
@@ -44,8 +45,8 @@ resize_8bit=False #if the user wants to resize the 8bit images
 
 # PARAMETERS FOR TIF CONVERSION
 
-bytes_between_images=4
-bytes_before_images=4
+bytes_between_images=0
+bytes_before_images=0
 
 chng_CWD=input('Do you want to change current working directory? Enter True or False: ')
 
@@ -67,6 +68,7 @@ else:
 resize_8bit=input("Do you want to resize the 8-bit .tif files? Enter True or False: ")
 if resize_8bit == 'True':
     resize_8bit=True
+    
 else:
     resize_8bit=False
 
@@ -74,6 +76,14 @@ else:
 if crt_dnsize_fldr:
     if os.path.exists(working_dir+'/DOWNSIZED') == False:
            os.mkdir(working_dir+'/DOWNSIZED')
+    downsize_dir=os.path.join(working_dir,'DOWNSIZED')
+
+if resize_8bit:
+    if os.path.exists(working_dir+'/DOWNSIZED/RESIZED') == False:
+           os.mkdir(working_dir+'/DOWNSIZED/RESIZED')
+    downsize_dir=os.path.join(working_dir,'DOWNSIZED')
+    resize_dir=os.path.join(working_dir,'DOWNSIZED/RESIZED')
+
 
 #ASKING USER ON ACTIONS TO PERFORM
 conv_16bit=input("Do you want to convert raw into 16-bit .tif files? Enter True or False: ")
@@ -82,10 +92,10 @@ if conv_16bit == 'True':
 else:
     conv_16bit=False
 
-ex_params=open(working_dir+'/Experimental Parameters.txt').read()
-px_x=int(ex_params[ex_params.find('ROIStride')+len('ROIStride'):ex_params.find('ROIWidth')-1])
-px_y=int(ex_params[ex_params.find('ROIWidth')+len('ROIWidth'):ex_params.find('ROIHeight')-1])
-slices_z=int(ex_params[ex_params.find('Overlap Mode')+len('Overlap Mode'):ex_params.find('Planes')-1])
+#ex_params=open(working_dir+'/Workflow.txt').read()
+px_x=2048
+px_y=2048
+slices_z=955
 print(px_x,px_y,slices_z)
 
 
@@ -105,12 +115,11 @@ for file in os.listdir(working_dir):
         file_names.append(file_name)
 
 
-
 #CREATING 8-BIT .TIF OF RAW FILES TO BE STORED IN 'DOWNSIZED' FOLDER
 if crt_dnsize_fldr:
         
     downsize_dir=os.path.join(working_dir,'DOWNSIZED')
-    img_shape = np.array((px_y,px_x,slices_z), dtype = np.uint)
+    img_shape = np.array((512,1024,slices_z), dtype = np.uint)
     img = np.zeros(img_shape, dtype=np.uint16)
 
     for file in file_names:
@@ -125,8 +134,14 @@ if crt_dnsize_fldr:
                     
             px_data_i = px_data[i_start_index:i_end_index]
             img_i = px_data_i.reshape(px_y, px_x)
+            img_i_r=Image.fromarray(img_i)
+            img_i_r=img_i_r.resize((1024,512))
+
+            
             # Store the slice in the img array
-            img[:, :, i] = img_i
+            img[:, :, i] = np.array(img_i_r, dtype=np.uint16)
+
+            print('here')
 
         #Bit-shifting to 8-bit
         img = (img >> 8).astype('uint8')
@@ -142,15 +157,15 @@ if crt_dnsize_fldr:
 
 
 #Resizing 8-bit
-if resize_8bit:
-    if os.path.exists(working_dir+'/DOWNSIZED'):
-           downsize_dir=os.path.join(working_dir,'DOWNSIZED')
-    file_8bit_names=list()
-    for file in os.listdir(downsize_dir):
-        if file.endswith('.tif') and not file.startswith('._'):
-            file_8bit_name=os.path.join(working_dir, file)
-            file_8bit_names.append(file_8bit_name)
-            print(file_8bit_name)
+#if resize_8bit:
+  #  dn_file_names=list()
+   # for file in os.listdir(downsize_dir):
+    #    if file.endswith(file_type) and not file.startswith('._'):
+     #       file_name=os.path.join(downsize_dir, file)
+      #      dn_file_names.append(file_name)
+
+    #for file in dn_file_names:
+     #   img=Image.open(file)
 
 
 
