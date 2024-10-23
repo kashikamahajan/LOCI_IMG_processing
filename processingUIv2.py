@@ -5,21 +5,17 @@ from PyQt5.QtWidgets import (
     QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QGridLayout
 )
 
-# Create a function to handle button click
 def get_directory():
     working_dir = QFileDialog.getExistingDirectory(None, 'Select Directory')
     cwd_label_txt = "Current Directory: " + str(working_dir)
     cwd_label.setText(cwd_label_txt)
 
-# Initialize the application
 app = QApplication(sys.argv)
 
-# Create the main window
 window = QWidget()
 window.setWindowTitle("Processingv11")
 window.resize(600, 400)
 
-# Create a layout
 main_layout = QVBoxLayout()
 
 # Current directory label and button
@@ -29,7 +25,6 @@ cwd_label = QLabel(cwd_label_txt)
 select_dir_button = QPushButton("Select Directory")
 select_dir_button.clicked.connect(get_directory)
 
-# Add directory selection to layout
 main_layout.addWidget(cwd_label)
 main_layout.addWidget(select_dir_button)
 
@@ -57,10 +52,8 @@ params_layout.addWidget(QLabel("Z slices:"), 5, 0)
 z_slices_input = QLineEdit()
 params_layout.addWidget(z_slices_input, 5, 1)
 
-# Add parameters layout to main layout
 main_layout.addLayout(params_layout)
 
-# Create the radio buttons for conversion options
 steps_layout = QVBoxLayout()
 steps_label = QLabel("Choose steps to perform")
 
@@ -73,14 +66,9 @@ steps_layout.addWidget(convert_16bit_radio)
 steps_layout.addWidget(convert_8bit_radio)
 steps_layout.addWidget(resize_8bit_radio)
 
-# Add radio button section to main layout
 main_layout.addLayout(steps_layout)
 
-# Set the layout to the main window
 window.setLayout(main_layout)
 
-# Show the window
 window.show()
-
-# Run the application
 sys.exit(app.exec_())
