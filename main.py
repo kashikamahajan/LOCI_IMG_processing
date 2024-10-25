@@ -4,8 +4,8 @@ from PyQt5.QtWidgets import (
     QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QGridLayout
 )
 
-def macro_func():
-    
+#def macro_func():
+
 
 #setting directory
 def get_directory():
