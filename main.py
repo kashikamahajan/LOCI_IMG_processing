@@ -1,4 +1,4 @@
-
+import os
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QLabel, QPushButton, QWidget, QFileDialog,
@@ -18,6 +18,10 @@ raw_to_16bit=False
 raw_to_8bit=False
 raw_to_8bit_dnzd=False
 
+#variables to track the directories, created or old
+#NOTE: User can choose not to use this funcionalty, and so these dirs will not be made
+working_dir=os.getcwd
+u8bit_dir=""
 
 #def macro_func():
 
@@ -46,18 +50,35 @@ def run(px_x: int, px_y: int, slices_z: int):
     #running macro
 
 def set_paramaters(x_pixel_input,  y_pixels_input :int,  z_slices_input :int,bytes_before_img_input :int, bytes_between_img_input:int):
+    """
+    Sets all the parameters needed for processing raw images
+
+    """
     px_x=x_pixel_input
     px_y=y_pixels_input
     z_slices=z_slices_input
     bytes_before_images=bytes_before_img_input
     bytes_between_images=bytes_between_img_input
-    print(px_x)
 
 def set_controls(u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
+    """
+    Sets all the control variables for the flow of the progra, specifgying which processes are carried out
+    
+    """
     raw_to_16bit=u16_bit_conv
     raw_to_8bit=u8_bit_conv
     raw_to_8bit_dnzd=u8_bit_conv_dnzd
-    print(raw_to_16bit)
+
+def create_dirs():
+    if(raw_to_16bit):
+        if os.path.exists(working_dir+'/TIFF_FILES') == False:
+           os.mkdir(working_dir+'/TIFF_FILES')
+        tiff_dir=os.path.join(working_dir,'TIFF_FILES')
+   
+
+   # if(raw_to_8bit):
+
+    #if(raw_to_8bit_dnzd):
 
 
 #FROM UI INPUTS
