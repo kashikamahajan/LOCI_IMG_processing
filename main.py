@@ -4,6 +4,13 @@ from PyQt5.QtWidgets import (
     QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QGridLayout
 )
 
+
+#global variables
+px_x=0
+px_y=0
+z_slices=0
+
+
 #def macro_func():
 
 
@@ -35,6 +42,10 @@ def run(px_x: int, px_y: int, slices_z: int):
 
     #running macro
 
+def setting_paramaters(x,y,z):
+    px_x=x
+    px_y=y
+    z_slices=z
 
 
 
