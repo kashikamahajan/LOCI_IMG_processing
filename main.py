@@ -1,3 +1,4 @@
+
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QLabel, QPushButton, QWidget, QFileDialog,
@@ -9,6 +10,13 @@ from PyQt5.QtWidgets import (
 px_x=0
 px_y=0
 z_slices=0
+bytes_before_images=0
+bytes_between_images=0
+
+#control variables
+raw_to_16bit=False
+raw_to_8bit=False
+raw_to_8bit_dnzd=False
 
 
 #def macro_func():
@@ -42,10 +50,12 @@ def run(px_x: int, px_y: int, slices_z: int):
 
     #running macro
 
-def setting_paramaters(x,y,z):
+def setting_paramaters(x,y,z,bytes_before, bytes_between):
     px_x=x
     px_y=y
     z_slices=z
+    bytes_before_images=bytes_before
+    bytes_between_images=bytes_between
 
 
 
