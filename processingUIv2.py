@@ -66,7 +66,7 @@ steps_label = QLabel("Choose steps to perform")
 
 convert_16bit_radio = QRadioButton("Convert RAW files to 16bit")
 convert_8bit_radio = QRadioButton("Convert RAW files to 8bit")
-resize_8bit_radio = QRadioButton("Resize 8bit files")
+resize_8bit_radio = QRadioButton("Downsample 8bit tif files by 50%")
 
 steps_layout.addWidget(steps_label)
 steps_layout.addWidget(convert_16bit_radio)
