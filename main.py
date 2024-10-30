@@ -40,22 +40,17 @@ def run(px_x: int, px_y: int, slices_z: int):
     :return:
     """
 
-    #setting global ()
-
-    #8bit tif conversion()
-
-    #16 bit tif conversion()
 
     #save()
 
     #running macro
 
-def set_paramaters(x,y,z,bytes_before_img, bytes_between_img):
-    px_x=x
-    px_y=y
-    z_slices=z
-    bytes_before_images=bytes_before_img
-    bytes_between_images=bytes_between_img
+def set_paramaters(x_pixel_input,  y_pixels_input :int,  z_slices_input :int,bytes_before_img_input :int, bytes_between_img_input:int):
+    px_x=x_pixel_input
+    px_y=y_pixels_input
+    z_slices=z_slices_input
+    bytes_before_images=bytes_before_img_input
+    bytes_between_images=bytes_between_img_input
 
 def set_controls(u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
     raw_to_16bit=u16_bit_conv
@@ -92,28 +87,39 @@ if __name__ == "__main__":
     params_layout = QGridLayout()
     params_layout.addWidget(QLabel("Parameters for TIF Conversion"), 0, 0, 1, 2)
 
+    bytes_between_images_input=0
     params_layout.addWidget(QLabel("Bytes between images:"), 1, 0)
     bytes_between_images_input = QLineEdit()
     params_layout.addWidget(bytes_between_images_input, 1, 1)
 
+    bytes_before_images_input=0
     params_layout.addWidget(QLabel("Bytes before images:"), 2, 0)
     bytes_before_images_input = QLineEdit()
     params_layout.addWidget(bytes_before_images_input, 2, 1)
 
+    pixel_size_x_input=0
     params_layout.addWidget(QLabel("Pixel size (x):"), 3, 0)
     pixel_size_x_input = QLineEdit()
     params_layout.addWidget(pixel_size_x_input, 3, 1)
 
+    pixel_size_y_input=0
     params_layout.addWidget(QLabel("Pixel size (y):"), 4, 0)
     pixel_size_y_input = QLineEdit()
     params_layout.addWidget(pixel_size_y_input, 4, 1)
 
+    z_slices_input=0
     params_layout.addWidget(QLabel("Z slices:"), 5, 0)
     z_slices_input = QLineEdit()
     params_layout.addWidget(z_slices_input, 5, 1)
 
+    param_dir_button = QPushButton("Set Parameters")
+    param_dir_button.clicked.connect( lambda: set_paramaters(pixel_size_x_input,pixel_size_y_input,z_slices_input,bytes_before_images_input,bytes_before_images_input))
+
+
     # Add parameters layout to main layout
     main_layout.addLayout(params_layout)
+
+    main_layout.addWidget(param_dir_button)
 
     # Create the radio buttons for conversion options
     steps_layout = QVBoxLayout()
@@ -127,6 +133,11 @@ if __name__ == "__main__":
     steps_layout.addWidget(convert_16bit_radio)
     steps_layout.addWidget(convert_8bit_radio)
     steps_layout.addWidget(resize_8bit_radio)
+
+    
+    steps_dir_button = QPushButton("Set Steps")
+    steps_dir_button.clicked.connect( lambda: set_controls(convert_16bit_radio,convert_8bit_radio,resize_8bit_radio))
+    steps_layout.addWidget(steps_dir_button)
 
     # Add radio button section to main layout
     main_layout.addLayout(steps_layout)
