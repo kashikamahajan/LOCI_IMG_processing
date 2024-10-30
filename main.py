@@ -2,7 +2,7 @@
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QLabel, QPushButton, QWidget, QFileDialog,
-    QLineEdit, QRadioButton, QVBoxLayout, QHBoxLayout, QGridLayout
+    QLineEdit, QCheckBox, QVBoxLayout, QHBoxLayout, QGridLayout
 )
 
 
@@ -51,11 +51,13 @@ def set_paramaters(x_pixel_input,  y_pixels_input :int,  z_slices_input :int,byt
     z_slices=z_slices_input
     bytes_before_images=bytes_before_img_input
     bytes_between_images=bytes_between_img_input
+    print(px_x)
 
 def set_controls(u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
     raw_to_16bit=u16_bit_conv
     raw_to_8bit=u8_bit_conv
     raw_to_8bit_dnzd=u8_bit_conv_dnzd
+    print(raw_to_16bit)
 
 
 #FROM UI INPUTS
@@ -89,23 +91,23 @@ if __name__ == "__main__":
 
     bytes_between_images_input=0
     params_layout.addWidget(QLabel("Bytes between images:"), 1, 0)
-    bytes_between_images_input = QLineEdit()
-    params_layout.addWidget(bytes_between_images_input, 1, 1)
+    bytes_between_images_input_line =QLineEdit()
+    params_layout.addWidget(bytes_between_images_input_line, 1, 1)
 
     bytes_before_images_input=0
     params_layout.addWidget(QLabel("Bytes before images:"), 2, 0)
-    bytes_before_images_input = QLineEdit()
-    params_layout.addWidget(bytes_before_images_input, 2, 1)
+    bytes_before_images_input_line = QLineEdit()
+    params_layout.addWidget(bytes_before_images_input_line, 2, 1)
 
     pixel_size_x_input=0
     params_layout.addWidget(QLabel("Pixel size (x):"), 3, 0)
-    pixel_size_x_input = QLineEdit()
-    params_layout.addWidget(pixel_size_x_input, 3, 1)
+    pixel_size_x_input_line = QLineEdit()
+    params_layout.addWidget(pixel_size_x_input_line, 3, 1)
 
     pixel_size_y_input=0
     params_layout.addWidget(QLabel("Pixel size (y):"), 4, 0)
-    pixel_size_y_input = QLineEdit()
-    params_layout.addWidget(pixel_size_y_input, 4, 1)
+    pixel_size_y_input_line = QLineEdit()
+    params_layout.addWidget(pixel_size_y_input_line, 4, 1)
 
     z_slices_input=0
     params_layout.addWidget(QLabel("Z slices:"), 5, 0)
@@ -113,7 +115,7 @@ if __name__ == "__main__":
     params_layout.addWidget(z_slices_input, 5, 1)
 
     param_dir_button = QPushButton("Set Parameters")
-    param_dir_button.clicked.connect( lambda: set_paramaters(pixel_size_x_input,pixel_size_y_input,z_slices_input,bytes_before_images_input,bytes_before_images_input))
+    param_dir_button.clicked.connect( lambda: set_paramaters(int(pixel_size_x_input_line.text()),int(pixel_size_y_input_line.text()),int(z_slices_input.text()),int(bytes_before_images_input_line.text()),int(bytes_between_images_input_line.text())))
 
 
     # Add parameters layout to main layout
@@ -125,9 +127,9 @@ if __name__ == "__main__":
     steps_layout = QVBoxLayout()
     steps_label = QLabel("Choose steps to perform")
 
-    convert_16bit_radio = QRadioButton("Convert RAW files to 16bit")
-    convert_8bit_radio = QRadioButton("Convert RAW files to 8bit")
-    resize_8bit_radio = QRadioButton("Downsample 8bit tif files by 50%")
+    convert_16bit_radio = QCheckBox("Convert RAW files to 16bit")
+    convert_8bit_radio = QCheckBox("Convert RAW files to 8bit")
+    resize_8bit_radio = QCheckBox("Downsample 8bit tif files by 50%")
 
     steps_layout.addWidget(steps_label)
     steps_layout.addWidget(convert_16bit_radio)
@@ -136,7 +138,7 @@ if __name__ == "__main__":
 
     
     steps_dir_button = QPushButton("Set Steps")
-    steps_dir_button.clicked.connect( lambda: set_controls(convert_16bit_radio,convert_8bit_radio,resize_8bit_radio))
+    steps_dir_button.clicked.connect( lambda: set_controls(convert_16bit_radio.isChecked(),convert_8bit_radio.isChecked(),resize_8bit_radio))
     steps_layout.addWidget(steps_dir_button)
 
     # Add radio button section to main layout
