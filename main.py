@@ -1,3 +1,4 @@
+
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QLabel, QPushButton, QWidget, QFileDialog,
@@ -49,13 +50,17 @@ def run(px_x: int, px_y: int, slices_z: int):
 
     #running macro
 
-def setting_paramaters(x,y,z,bytes_before, bytes_between):
+def set_paramaters(x,y,z,bytes_before_img, bytes_between_img):
     px_x=x
     px_y=y
     z_slices=z
-    bytes_before_images=bytes_before
-    bytes_between_images=bytes_between
+    bytes_before_images=bytes_before_img
+    bytes_between_images=bytes_between_img
 
+def set_controls(u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
+    raw_to_16bit=u16_bit_conv
+    raw_to_8bit=u8_bit_conv
+    raw_to_8bit_dnzd=u8_bit_conv_dnzd
 
 
 #FROM UI INPUTS
@@ -136,4 +141,3 @@ if __name__ == "__main__":
 
     # Run the application
     sys.exit(app.exec_())
-
