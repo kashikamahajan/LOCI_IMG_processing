@@ -1,4 +1,3 @@
-
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QLabel, QPushButton, QWidget, QFileDialog,
@@ -137,3 +136,4 @@ if __name__ == "__main__":
 
     # Run the application
     sys.exit(app.exec_())
+
