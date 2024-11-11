@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import (
 )
 import numpy as np
 from matplotlib import pyplot as plt
-from tifffile import imsave, imread
+from tifffile import imsave, imwrite
 from PIL import Image
 import shutil
 
@@ -42,24 +42,22 @@ def get_directory():
     cwd_label_txt = "Current Directory: " + str(working_dir)
     cwd_label.setText(cwd_label_txt)
 
-def run(px_x: int, px_y: int, slices_z: int):
-    """Run the main pipeline.
+def run():
+     
+     create_dirs()
 
-    Description
+     if(raw_to_16bit or raw_to_8bit or raw_to_16bit):
+        get_files_working_dir()
+        if(raw_to_8bit) : uint8_bit_tif_conv()
+        if(raw_to_16bit) : conv_16bit_tiff()
 
-    :param 1:
-    
-        What that is
-
-    :return:
-    """
 
 
     #save()
 
     #running macro
 
-def set_paramaters(x_pixel_input,  y_pixels_input :int,  z_slices_input :int,bytes_before_img_input :int, bytes_between_img_input:int):
+def set_paramaters(x_pixel_input:int,  y_pixels_input :int,  z_slices_input :int,bytes_before_img_input :int, bytes_between_img_input:int):
     """
     Sets all the parameters needed for processing raw images
 
@@ -98,7 +96,6 @@ def create_dirs():
         if os.path.exists(working_dir+'/DOWNSIZED') == False:
             os.mkdir(working_dir+'/DOWNSIZED')
         u8bit_dir=os.path.join(working_dir,'DOWNSIZED')
-        uint8_bit_tif_conv()
 
     if(raw_to_8bit_dnzd):
         if os.path.exists(working_dir+'/DOWNSIZED/RESIZED') == False:
@@ -116,6 +113,8 @@ def get_files_working_dir():
 
 def uint8_bit_tif_conv():
 
+    global file_names
+
     img_shape = np.array((px_x,px_y,z_slices), dtype = np.uint)
     img = np.zeros(img_shape, dtype=np.uint16)
 
@@ -125,7 +124,7 @@ def uint8_bit_tif_conv():
         px_data = np.fromfile(file, dtype=np.uint16)
         px_data = px_data[int(bytes_before_images/2):]
             
-        for i in range(z_slices):
+        for i in range(0,z_slices):
             i_start_index = i * (px_x * px_y + int(bytes_between_images / 2))
             i_end_index = i_start_index + (px_x * px_y)
                     
@@ -143,9 +142,34 @@ def uint8_bit_tif_conv():
 
         # Save the 8-bit image
         bit8_file_name=file[:len(file) - len(".raw")] + '_8bit.tif'
-        imsave(bit8_file_name, np.moveaxis(img,2, 0))
+        imwrite(bit8_file_name, np.moveaxis(img,2, 0))
         shutil.move(bit8_file_name,u8bit_dir)
 
+def conv_16bit_tiff():
+    print("here")
+    img_shape = np.array((px_y,px_x,z_slices), dtype = np.uint)
+    img=np.zeros(img_shape,dtype = np.uint16)
+    for file in file_names:
+        px_data = np.fromfile(file, dtype = np.uint16)
+        px_data = px_data[int(bytes_before_images/2):]
+        
+        for i in range (0,z_slices):
+        
+            i_start_index=i*(px_x*px_y+int(bytes_between_images/2))
+            i_end_index=i_start_index+(px_x*px_y)
+                                          
+            px_data_i=px_data[i_start_index:i_end_index]
+            img_i=(px_data_i.reshape(int(px_y),int(px_x)))
+            
+            img[:,:,i]=img_i
+
+        #saving and storing files in assigned directory
+        bit16_file_name=file[:len(file) - len('.raw')] + '.tif'
+        imwrite(bit16_file_name, np.moveaxis(img, 2, 0))
+        shutil.move(bit16_file_name,tiff_dir)
+
+    else:
+        pass
 
 
 #FROM UI INPUTS
@@ -233,6 +257,12 @@ if __name__ == "__main__":
     main_layout.addLayout(steps_layout)
 
     
+    #TODO RUN BUTTON
+
+    run_button = QPushButton("Run")
+    run_button.clicked.connect(run)
+    run_button.setStyleSheet("background-color: '#b6e6fc'")
+    main_layout.addWidget(run_button)
 
     # Set the layout to the main window
     window.setLayout(main_layout)
@@ -240,7 +270,6 @@ if __name__ == "__main__":
     # Show the window
     window.show()
 
-    #TODO RUN BUTTON
 
     # Run the application
     sys.exit(app.exec_())
