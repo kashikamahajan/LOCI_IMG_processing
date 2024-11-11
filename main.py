@@ -4,7 +4,11 @@ from PyQt5.QtWidgets import (
     QApplication, QLabel, QPushButton, QWidget, QFileDialog,
     QLineEdit, QCheckBox, QVBoxLayout, QHBoxLayout, QGridLayout
 )
-
+import numpy as np
+from matplotlib import pyplot as plt
+from tifffile import imsave, imread
+from PIL import Image
+import shutil
 
 #global variables
 px_x=0
@@ -22,12 +26,18 @@ raw_to_8bit_dnzd=False
 #NOTE: User can choose not to use this funcionalty, and so these dirs will not be made
 working_dir=os.getcwd
 u8bit_dir=""
+u8bit_dns_dir=""
+tiff_dir=""
+
+#variables for tif_conv
+file_names=list()
 
 #def macro_func():
 
 
 #setting directory
 def get_directory():
+    global working_dir 
     working_dir = QFileDialog.getExistingDirectory(None, 'Select Directory')
     cwd_label_txt = "Current Directory: " + str(working_dir)
     cwd_label.setText(cwd_label_txt)
@@ -54,31 +64,90 @@ def set_paramaters(x_pixel_input,  y_pixels_input :int,  z_slices_input :int,byt
     Sets all the parameters needed for processing raw images
 
     """
+    global px_x, px_y, z_slices, bytes_before_images, bytes_between_images
+
     px_x=x_pixel_input
     px_y=y_pixels_input
     z_slices=z_slices_input
     bytes_before_images=bytes_before_img_input
     bytes_between_images=bytes_between_img_input
 
-def set_controls(u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
+def set_controls( u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
     """
     Sets all the control variables for the flow of the progra, specifgying which processes are carried out
     
     """
+    global raw_to_16bit, raw_to_8bit, raw_to_8bit_dnzd
+
     raw_to_16bit=u16_bit_conv
     raw_to_8bit=u8_bit_conv
     raw_to_8bit_dnzd=u8_bit_conv_dnzd
 
+    create_dirs()
+
+
 def create_dirs():
+
+    global raw_to_16bit, raw_to_8bit, raw_to_8bit_dnzd
+    global tiff_dir, u8bit_dir, u8bit_dns_dir
+
     if(raw_to_16bit):
         if os.path.exists(working_dir+'/TIFF_FILES') == False:
            os.mkdir(working_dir+'/TIFF_FILES')
         tiff_dir=os.path.join(working_dir,'TIFF_FILES')
-   
 
-   # if(raw_to_8bit):
+    if(raw_to_8bit):
+        if os.path.exists(working_dir+'/DOWNSIZED') == False:
+            os.mkdir(working_dir+'/DOWNSIZED')
+        u8bit_dir=os.path.join(working_dir,'DOWNSIZED')
+        uint8_bit_tif_conv()
 
-    #if(raw_to_8bit_dnzd):
+    if(raw_to_8bit_dnzd):
+        if os.path.exists(working_dir+'/DOWNSIZED/RESIZED') == False:
+            os.mkdir(working_dir+'/DOWNSIZED/RESIZED')
+        u8bit_dns_dir=os.path.join(working_dir,'/DOWNSIZED/RESIZED')
+
+
+def get_files_working_dir():
+    global file_names
+    for file in os.listdir(working_dir):
+        if file.endswith('.raw') and not file.startswith('._'):
+            file_name=os.path.join(working_dir, file)
+            file_names.append(file_name)
+
+
+def uint8_bit_tif_conv():
+
+    img_shape = np.array((px_x,px_y,z_slices), dtype = np.uint)
+    img = np.zeros(img_shape, dtype=np.uint16)
+
+    for file in file_names:
+        img=np.zeros(img_shape,dtype = np.uint16)
+        # Read the 16-bit pixel data from the file
+        px_data = np.fromfile(file, dtype=np.uint16)
+        px_data = px_data[int(bytes_before_images/2):]
+            
+        for i in range(z_slices):
+            i_start_index = i * (px_x * px_y + int(bytes_between_images / 2))
+            i_end_index = i_start_index + (px_x * px_y)
+                    
+            px_data_i = px_data[i_start_index:i_end_index]
+            img_i = px_data_i.reshape(px_y, px_x)
+            img_i_r=Image.fromarray(img_i)
+            
+            # Store the slice in the img array
+            img[:, :, i] = np.array(img_i_r, dtype=np.uint16)
+
+        #Bit-shifting to 8-bit
+        img = (img >> 8).astype('uint8')
+
+        print(img.size)
+
+        # Save the 8-bit image
+        bit8_file_name=file[:len(file) - len(".raw")] + '_8bit.tif'
+        imsave(bit8_file_name, np.moveaxis(img,2, 0))
+        shutil.move(bit8_file_name,u8bit_dir)
+
 
 
 #FROM UI INPUTS
@@ -164,6 +233,8 @@ if __name__ == "__main__":
 
     # Add radio button section to main layout
     main_layout.addLayout(steps_layout)
+
+    
 
     # Set the layout to the main window
     window.setLayout(main_layout)
