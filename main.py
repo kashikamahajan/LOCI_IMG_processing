@@ -83,8 +83,6 @@ def set_controls( u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
     raw_to_8bit=u8_bit_conv
     raw_to_8bit_dnzd=u8_bit_conv_dnzd
 
-    create_dirs()
-
 
 def create_dirs():
 
