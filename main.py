@@ -80,7 +80,10 @@ def set_controls( u16_bit_conv,u8_bit_conv, u8_bit_conv_dnzd):
 
 
 def create_dirs():
-
+    """
+    Creates directories to store processed files as per the controls set
+    
+    """
     global raw_to_16bit, raw_to_8bit, raw_to_8bit_dnzd
     global tiff_dir, u8bit_dir, u8bit_dns_dir
 
@@ -101,6 +104,10 @@ def create_dirs():
 
 
 def get_files_working_dir():
+    """
+    Creates a list of all the raw files in the current working directory
+    
+    """
     global file_names
     for file in os.listdir(working_dir):
         if file.endswith('.raw') and not file.startswith('._'):
@@ -109,6 +116,10 @@ def get_files_working_dir():
 
 
 def conv_8bit_tiff():
+    """
+    Converts files in the files_names to 8 bit tiff images and stores them in the 'DOWNSIZED' folder
+    
+    """
 
     global file_names
 
@@ -142,7 +153,50 @@ def conv_8bit_tiff():
         imwrite(bit8_file_name, np.moveaxis(img,2, 0))
         shutil.move(bit8_file_name,u8bit_dir)
 
+def conv_8bit__dnsd_tiff():
+    """
+    Converts files in the files_names to 8 bit tiff images downsized to 50% of the size and stores them in the 'DOWNSIZED' folder
+    
+    """
+
+    global file_names
+
+    img_shape = np.array((px_x,px_y,z_slices), dtype = np.uint)
+    img = np.zeros(img_shape, dtype=np.uint16)
+
+    for file in file_names:
+        img=np.zeros(img_shape,dtype = np.uint16)
+        # Read the 16-bit pixel data from the file
+        px_data = np.fromfile(file, dtype=np.uint16)
+        px_data = px_data[int(bytes_before_images/2):]
+            
+        for i in range(0,z_slices):
+            i_start_index = i * (px_x * px_y + int(bytes_between_images / 2))
+            i_end_index = i_start_index + (px_x * px_y)
+                    
+            px_data_i = px_data[i_start_index:i_end_index]
+            img_i = px_data_i.reshape(px_y, px_x)
+            img_i_r=Image.fromarray(img_i)
+            
+            # Store the slice in the img array
+            img[:, :, i] = np.array(img_i_r, dtype=np.uint16)
+
+        #Bit-shifting to 8-bit
+        img = (img >> 8).astype('uint8')
+
+        print(img.size)
+
+        # Save the 8-bit image
+        bit8_file_name=file[:len(file) - len(".raw")] + '_8bit.tif'
+        imwrite(bit8_file_name, np.moveaxis(img,2, 0))
+        shutil.move(bit8_file_name,u8bit_dir)
+
+
 def conv_16bit_tiff():
+    """
+    Converts files in the files_names to 16 bit tiff images and stores them in the 'TIFF' folder
+    
+    """
     print("here")
     img_shape = np.array((px_y,px_x,z_slices), dtype = np.uint)
     img=np.zeros(img_shape,dtype = np.uint16)
