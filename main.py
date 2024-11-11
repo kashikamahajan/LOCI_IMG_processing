@@ -44,18 +44,15 @@ def get_directory():
 
 def run():
      
-     create_dirs()
+    create_dirs()
 
-     if(raw_to_16bit or raw_to_8bit or raw_to_16bit):
+    if(raw_to_16bit or raw_to_8bit or raw_to_16bit):
         get_files_working_dir()
-        if(raw_to_8bit) : uint8_bit_tif_conv()
+        if(raw_to_8bit) : conv_8bit_tiff()
         if(raw_to_16bit) : conv_16bit_tiff()
 
+    sys.exit()
 
-
-    #save()
-
-    #running macro
 
 def set_paramaters(x_pixel_input:int,  y_pixels_input :int,  z_slices_input :int,bytes_before_img_input :int, bytes_between_img_input:int):
     """
@@ -111,7 +108,7 @@ def get_files_working_dir():
             file_names.append(file_name)
 
 
-def uint8_bit_tif_conv():
+def conv_8bit_tiff():
 
     global file_names
 
