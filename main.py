@@ -301,7 +301,7 @@ if __name__ == "__main__":
 
     
     steps_dir_button = QPushButton("Set Steps")
-    steps_dir_button.clicked.connect( lambda: set_controls(convert_16bit_radio.isChecked(),convert_8bit_radio.isChecked(),resize_8bit_radio))
+    steps_dir_button.clicked.connect( lambda: set_controls(convert_16bit_radio.isChecked(),convert_8bit_radio.isChecked(),resize_8bit_radio.isChecked()))
     steps_layout.addWidget(steps_dir_button)
 
     # Add radio button section to main layout
