@@ -8,6 +8,8 @@ import numpy as np
 from matplotlib import pyplot as plt
 from tifffile import imsave, imwrite
 from PIL import Image
+import imagej
+import scyjava as sj
 import shutil
 
 #global variables
@@ -46,12 +48,49 @@ def run():
      
     create_dirs()
 
-    if(raw_to_16bit or raw_to_8bit or raw_to_16bit):
-        get_files_working_dir()
-        if(raw_to_8bit) : conv_8bit_tiff()
-        if(raw_to_16bit) : conv_16bit_tiff()
+    #if(raw_to_16bit or raw_to_8bit or raw_to_16bit):
+    #    get_files_working_dir()
+    #    if(raw_to_8bit) : conv_8bit_tiff()
+    #    if(raw_to_16bit) : conv_16bit_tiff()
+
+    # get image file paths
+    get_files_working_dir()
+
+    # convert images
+    if raw_to_8bit:
+        for f in file_names:
+            raw_to_tiff(f, px_x, py_y, 8)
+    if raw_to_16bit:
+        for f in file_names:
+            raw_to_tiff(f, px_x, py_y, 16)
 
     sys.exit()
+
+
+def raw_to_tiff(path: str, x: int, y: int, bit_depth: int):
+    """
+    """
+    # import java/imagej resources
+    FileInfo = sj.jimport('ij.io.FileInfo')
+    Raw = sj.jimport('ij.plugin.Raw')
+
+    # create file info
+    fi = FileInfo()
+    # populate file info with metadata
+    if bit_depth == 8:
+        fi.filetype = FileInfo.GRAY8
+    if bit_depth == 16:
+        fi.fileType == FileInfo.GRAY16_UNSIGNED
+    fi.width = x
+    fi.height = y
+
+    # open imp with Raw and file info
+    imp = Raw.open(path, fi)
+
+    # TODO: extract file name
+
+    # save Imp to disk as tiff
+    ij.IJ.saveAs(imp, name)
 
 
 def set_paramaters(x_pixel_input:int,  y_pixels_input :int,  z_slices_input :int,bytes_before_img_input :int, bytes_between_img_input:int):
@@ -111,7 +150,7 @@ def get_files_working_dir():
     global file_names
     for file in os.listdir(working_dir):
         if file.endswith('.raw') and not file.startswith('._'):
-            file_name=os.path.join(working_dir, file)
+            file_name=os.path.normpath(os.path.join(working_dir, file))
             file_names.append(file_name)
 
 
@@ -225,6 +264,10 @@ def conv_16bit_tiff():
 
 #FROM UI INPUTS
 if __name__ == "__main__":
+    # initialize imagej
+    ij = imagej.init('sc.fiji:fiji', mode='interactive')
+    print(f"Fiji version: {ij.getVersion()}")
+
     # things run here
     # Initialize the application
     app = QApplication(sys.argv)
