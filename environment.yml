@@ -1,0 +1,13 @@
+name: processing
+channels:
+  - conda-forge
+dependencies:
+  - numpy
+  - matplotlib
+  - pillow
+  - tifffile
+  - openjdk=11
+  - pyimagej
+  - pip
+  - pip:
+    - pyqt5
