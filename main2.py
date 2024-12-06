@@ -24,34 +24,33 @@ raw_to_16bit=False
 raw_to_8bit=False
 raw_to_8bit_dnzd=False
 
-#variables to track the directories, created or old
+#variables to track the directories
 #NOTE: User can choose not to use this funcionalty, and so these dirs will not be made
 working_dir=os.getcwd
 u8bit_dir=""
-u8bit_dns_dir=""
 tiff_dir=""
 
 #variables for tif_conv
 file_names=list()
 
-#def macro_func():
-
-
 #setting directory
 def get_directory():
+    """
+    Gets the directory chosen by the user
+
+    """
     global working_dir 
     working_dir = QFileDialog.getExistingDirectory(None, 'Select Directory')
     cwd_label_txt = "Current Directory: " + str(working_dir)
     cwd_label.setText(cwd_label_txt)
 
 def run():
-     
-    create_dirs()
+    """
+    Manages control of the program
 
-    #if(raw_to_16bit or raw_to_8bit or raw_to_16bit):
-    #    get_files_working_dir()
-    #    if(raw_to_8bit) : conv_8bit_tiff()
-    #    if(raw_to_16bit) : conv_16bit_tiff()
+    """
+    # create any directories specified by the user
+    create_dirs()
 
     # get image file paths
     get_files_working_dir()
@@ -68,7 +67,10 @@ def run():
 
 
 def raw_to_16bit_tiff(path: str, x: int, y: int):
+    """
+    Converts raw images to 16bit tiff images and saves them into the TIFF_FILES folder
 
+    """
     # import java/imagej resources
     FileInfo = sj.jimport('ij.io.FileInfo')
     Raw = sj.jimport('ij.plugin.Raw')
@@ -77,75 +79,64 @@ def raw_to_16bit_tiff(path: str, x: int, y: int):
     # create file info
     fi = FileInfo()
     fi.fileType = FileInfo.GRAY16_UNSIGNED
-    fi.offset=0
     fi.width = x
     fi.height = y
     fi.nImages=955
-    fi.gapBetweenImages=0
     fi.intelByteOrder=True
-    fi.pixelWidth = 1                   # Voxel size in x direction
-    fi.pixelHeight = 1                  # Voxel size in y direction
-    fi.pixelDepth = 1                   # Voxel size in z direction
-    fi.unit = "pixel"                   # Unit of voxel size
-    fi.valueUnit = ""                   # No specific unit for values
-    fi.calibrationFunction = 0          # LUncalibrated
-    fi.whiteIsZero = False              # White is not zero
-
 
     # open imp with Raw and file info
     imp = Raw.open(path, fi)
+
+    # set brightness and contrast limits here
+    imp.setDisplayRange(0, 20000)
+
     # extract file name
     name=path[:len(path) - len(".raw")] + '_16bit.tif'
 
     # save Imp to disk as tiff
-    ij.IJ.saveAs(imp,"tiff", name)
+    ij.IJ.saveAs(imp,"Tiff", name)
 
-
+    # move the image to its respective directory
+    shutil.move(name,tiff_dir)
 
 
 def raw_to_8bit_tiff(path: str, x: int, y: int):
+    """
+    Converts raw images to 8bit tiff images and saves them into the DOWNSIZED folder
+
+    """
     
     # import java/imagej resources
     FileInfo = sj.jimport('ij.io.FileInfo')
     Raw = sj.jimport('ij.plugin.Raw')
     IJ = sj.jimport('ij.IJ')
-    Analyzer=sj.jimport('ij.plugin.filter.Analyzer')
+    ImageConverter=sj.jimport('ij.process.ImageConverter')
 
     # create file info
     fi = FileInfo()
-    fi.fileType = FileInfo.GRAY8
-    fi.offset=0
+    fi.fileType = FileInfo.GRAY16_UNSIGNED
     fi.width = x
     fi.height = y
     fi.nImages=955
-    fi.gapBetweenImages=0
     fi.intelByteOrder=True
-    fi.pixelWidth = 1                   # Voxel size in x direction
-    fi.pixelHeight = 1                  # Voxel size in y direction
-    fi.pixelDepth = 1                   # Voxel size in z direction
-    fi.unit = "pixel"                   # Unit of voxel size
-    fi.valueUnit = ""                   # No specific unit for values
-    fi.calibrationFunction = 0          # LUncalibrated
-    fi.whiteIsZero = False              # White is not zero
-
 
     # open imp with Raw and file info
     imp = Raw.open(path, fi)
+    
+    # set brightness and contrast limits here
+    imp.setDisplayRange(0, 20000)
 
-    
-    analyzer=Analyzer(imp)
-    analyzer.setOption("ScaleConversions", True)
-    analyzer.run("8-bit")
-    
+    ImageConverter.setDoScaling(True)
+    IJ.run(imp, "8-bit", "")
+
     # extract file name
     name=path[:len(path) - len(".raw")] + '_8bit.tif'
-    
 
     # save Imp to disk as tiff
-    ij.IJ.saveAs(imp,"tiff", name)
-
-
-
+    ij.IJ.saveAs(imp,"Tiff", name)
+    
+    # move the image to its respective directory
+    shutil.move(name,u8bit_dir)
 
 
 
@@ -208,114 +199,6 @@ def get_files_working_dir():
         if file.endswith('.raw') and not file.startswith('._'):
             file_name=os.path.normpath(os.path.join(working_dir, file))
             file_names.append(file_name)
-
-
-def conv_8bit_tiff():
-    """
-    Converts files in the files_names to 8 bit tiff images and stores them in the 'DOWNSIZED' folder
-    
-    """
-
-    global file_names
-
-    img_shape = np.array((px_x,px_y,z_slices), dtype = np.uint)
-    img = np.zeros(img_shape, dtype=np.uint16)
-
-    for file in file_names:
-        img=np.zeros(img_shape,dtype = np.uint16)
-        # Read the 16-bit pixel data from the file
-        px_data = np.fromfile(file, dtype=np.uint16)
-        px_data = px_data[int(bytes_before_images/2):]
-            
-        for i in range(0,z_slices):
-            i_start_index = i * (px_x * px_y + int(bytes_between_images / 2))
-            i_end_index = i_start_index + (px_x * px_y)
-                    
-            px_data_i = px_data[i_start_index:i_end_index]
-            img_i = px_data_i.reshape(px_y, px_x)
-            img_i_r=Image.fromarray(img_i)
-            
-            # Store the slice in the img array
-            img[:, :, i] = np.array(img_i_r, dtype=np.uint16)
-
-        #Bit-shifting to 8-bit
-        img = (img >> 8).astype('uint8')
-
-        print(img.size)
-
-        # Save the 8-bit image
-        bit8_file_name=file[:len(file) - len(".raw")] + '_8bit.tif'
-        imwrite(bit8_file_name, np.moveaxis(img,2, 0))
-        shutil.move(bit8_file_name,u8bit_dir)
-
-def conv_8bit__dnsd_tiff():
-    """
-    Converts files in the files_names to 8 bit tiff images downsized to 50% of the size and stores them in the 'DOWNSIZED' folder
-    
-    """
-
-    global file_names
-
-    img_shape = np.array((px_x,px_y,z_slices), dtype = np.uint)
-    img = np.zeros(img_shape, dtype=np.uint16)
-
-    for file in file_names:
-        img=np.zeros(img_shape,dtype = np.uint16)
-        # Read the 16-bit pixel data from the file
-        px_data = np.fromfile(file, dtype=np.uint16)
-        px_data = px_data[int(bytes_before_images/2):]
-            
-        for i in range(0,z_slices):
-            i_start_index = i * (px_x * px_y + int(bytes_between_images / 2))
-            i_end_index = i_start_index + (px_x * px_y)
-                    
-            px_data_i = px_data[i_start_index:i_end_index]
-            img_i = px_data_i.reshape(px_y, px_x)
-            img_i_r=Image.fromarray(img_i)
-            
-            # Store the slice in the img array
-            img[:, :, i] = np.array(img_i_r, dtype=np.uint16)
-
-        #Bit-shifting to 8-bit
-        img = (img >> 8).astype('uint8')
-
-        print(img.size)
-
-        # Save the 8-bit image
-        bit8_file_name=file[:len(file) - len(".raw")] + '_8bit.tif'
-        imwrite(bit8_file_name, np.moveaxis(img,2, 0))
-        shutil.move(bit8_file_name,u8bit_dir)
-
-
-def conv_16bit_tiff():
-    """
-    Converts files in the files_names to 16 bit tiff images and stores them in the 'TIFF' folder
-    
-    """
-    print("here")
-    img_shape = np.array((px_y,px_x,z_slices), dtype = np.uint)
-    img=np.zeros(img_shape,dtype = np.uint16)
-    for file in file_names:
-        px_data = np.fromfile(file, dtype = np.uint16)
-        px_data = px_data[int(bytes_before_images/2):]
-        
-        for i in range (0,z_slices):
-        
-            i_start_index=i*(px_x*px_y+int(bytes_between_images/2))
-            i_end_index=i_start_index+(px_x*px_y)
-                                          
-            px_data_i=px_data[i_start_index:i_end_index]
-            img_i=(px_data_i.reshape(int(px_y),int(px_x)))
-            
-            img[:,:,i]=img_i
-
-        #saving and storing files in assigned directory
-        bit16_file_name=file[:len(file) - len('.raw')] + '.tif'
-        imwrite(bit16_file_name, np.moveaxis(img, 2, 0))
-        shutil.move(bit16_file_name,tiff_dir)
-
-    else:
-        pass
 
 
 #FROM UI INPUTS
@@ -407,7 +290,7 @@ if __name__ == "__main__":
     main_layout.addLayout(steps_layout)
 
     
-    #TODO RUN BUTTON
+    # run button that connects to the run()
 
     run_button = QPushButton("Run")
     run_button.clicked.connect(run)
