@@ -59,17 +59,16 @@ def run():
     # convert images
     if raw_to_8bit:
         for f in file_names:
-            raw_to_tiff(f, px_x, px_y, 8)
+            raw_to_8bit_tiff(f, px_x, px_y)
     if raw_to_16bit:
         for f in file_names:
-            raw_to_tiff(f, px_x, px_y, 16)
+            raw_to_16bit_tiff(f, px_x, px_y)
 
     sys.exit()
 
 
-def raw_to_tiff(path: str, x: int, y: int, bit_depth: int):
-    """
-    """
+def raw_to_16bit_tiff(path: str, x: int, y: int):
+
     # import java/imagej resources
     FileInfo = sj.jimport('ij.io.FileInfo')
     Raw = sj.jimport('ij.plugin.Raw')
@@ -77,12 +76,7 @@ def raw_to_tiff(path: str, x: int, y: int, bit_depth: int):
 
     # create file info
     fi = FileInfo()
-    # populate file info with metadata
-    if bit_depth == 8:
-        fi.fileType = FileInfo.GRAY8
-    if bit_depth == 16:
-        fi.fileType = FileInfo.GRAY16_SIGNED
-    
+    fi.fileType = FileInfo.GRAY16_UNSIGNED
     fi.offset=0
     fi.width = x
     fi.height = y
@@ -97,20 +91,62 @@ def raw_to_tiff(path: str, x: int, y: int, bit_depth: int):
     fi.calibrationFunction = 0          # LUncalibrated
     fi.whiteIsZero = False              # White is not zero
 
-    print(f"Width: {fi.width}, Height: {fi.height}, Bit Depth: {bit_depth}, Byte Order: {'Little' if fi.intelByteOrder else 'Big'}")
+
+    # open imp with Raw and file info
+    imp = Raw.open(path, fi)
+    # extract file name
+    name=path[:len(path) - len(".raw")] + '_16bit.tif'
+
+    # save Imp to disk as tiff
+    ij.IJ.saveAs(imp,"tiff", name)
+
+
+
+
+def raw_to_8bit_tiff(path: str, x: int, y: int):
+    
+    # import java/imagej resources
+    FileInfo = sj.jimport('ij.io.FileInfo')
+    Raw = sj.jimport('ij.plugin.Raw')
+    IJ = sj.jimport('ij.IJ')
+    Analyzer=sj.jimport('ij.plugin.filter.Analyzer')
+
+    # create file info
+    fi = FileInfo()
+    fi.fileType = FileInfo.GRAY8
+    fi.offset=0
+    fi.width = x
+    fi.height = y
+    fi.nImages=955
+    fi.gapBetweenImages=0
+    fi.intelByteOrder=True
+    fi.pixelWidth = 1                   # Voxel size in x direction
+    fi.pixelHeight = 1                  # Voxel size in y direction
+    fi.pixelDepth = 1                   # Voxel size in z direction
+    fi.unit = "pixel"                   # Unit of voxel size
+    fi.valueUnit = ""                   # No specific unit for values
+    fi.calibrationFunction = 0          # LUncalibrated
+    fi.whiteIsZero = False              # White is not zero
+
 
     # open imp with Raw and file info
     imp = Raw.open(path, fi)
 
-    if bit_depth == 16:
-        IJ.run(imp, "Enhance Contrast", "saturated=0.35")  # Adjust for better visualization
-
-
-    # TODO: extract file name
+    
+    analyzer=Analyzer(imp)
+    analyzer.setOption("ScaleConversions", True)
+    analyzer.run("8-bit")
+    
+    # extract file name
     name=path[:len(path) - len(".raw")] + '_8bit.tif'
+    
 
     # save Imp to disk as tiff
     ij.IJ.saveAs(imp,"tiff", name)
+
+
+
+
 
 
 def set_paramaters(x_pixel_input:int,  y_pixels_input :int,  z_slices_input :int,bytes_before_img_input :int, bytes_between_img_input:int):
