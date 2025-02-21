@@ -24,17 +24,17 @@ raw_to_16bit=False
 raw_to_8bit=False
 raw_to_8bit_dnzd=False
 
+process_currently_running="None"
+
 #variables to track the directories
 #NOTE: User can choose not to use this funcionalty, and so these dirs will not be made
 working_dir=os.getcwd
 u8bit_dir=""
 tiff_dir=""
-output_dir="E:\test"
-cwd_dir=""
-
 
 #variables for tif_conv
 file_names=list()
+
 
 #setting directory
 def get_directory():
@@ -42,22 +42,10 @@ def get_directory():
     Gets the directory chosen by the user
 
     """
-    global working_dir,cwd_dir 
+    global working_dir 
     working_dir = QFileDialog.getExistingDirectory(None, 'Select Directory')
-    cwd_dir=str(working_dir)
     cwd_label_txt = "Current Directory: " + str(working_dir)
     cwd_label.setText(cwd_label_txt)
-
-#setting output directory
-def get_out_directory():
-    """
-    Gets the directory chosen by the user
-
-    """
-    global output_dir 
-    output_dir = QFileDialog.getExistingDirectory(None, 'Select Directory')
-    out_label_txt = "Current Directory: " + str(output_dir)
-    out_label.setText(out_label_txt)
 
 def run():
     """
@@ -86,6 +74,9 @@ def raw_to_16bit_tiff(path: str, x: int, y: int, z: int):
     Converts raw images to 16bit tiff images and saves them into the TIFF_FILES folder
 
     """
+
+    process_currently_running="Converting Raw to 16bit tif"
+
     # import java/imagej resources
     FileInfo = sj.jimport('ij.io.FileInfo')
     Raw = sj.jimport('ij.plugin.Raw')
@@ -103,10 +94,10 @@ def raw_to_16bit_tiff(path: str, x: int, y: int, z: int):
     imp = Raw.open(path, fi)
 
     # set brightness and contrast limits here
-    # imp.setDisplayRange(0, 20000)
+    imp.setDisplayRange(0, 20000) #might be changing the data
 
     # extract file name
-    name=path[:len(path) - len(".raw")] + '.tif'
+    name=path[:len(path) - len(".raw")] + '_16bit.tif'
 
     # save Imp to disk as tiff
     ij.IJ.saveAs(imp,"Tiff", name)
@@ -189,9 +180,9 @@ def create_dirs():
     global tiff_dir, u8bit_dir, u8bit_dns_dir
 
     if(raw_to_16bit):
-        if os.path.exists(output_dir+'/TIFF_FILES') == False:
-           os.mkdir(output_dir+'/TIFF_FILES')
-        tiff_dir=os.path.join(output_dir,'TIFF_FILES')
+        if os.path.exists(working_dir+'/TIFF_FILES') == False:
+           os.mkdir(working_dir+'/TIFF_FILES')
+        tiff_dir=os.path.join(working_dir,'TIFF_FILES')
 
     if(raw_to_8bit):
         if os.path.exists(working_dir+'/DOWNSIZED') == False:
@@ -217,6 +208,25 @@ def get_files_working_dir():
 
 
 #FROM UI INPUTS
+
+
+def run_button_func():
+
+    main_layout = QVBoxLayout()
+    cwd_label_txt = "Process Being run: "
+    cwd_label = QLabel(cwd_label_txt+process_currently_running)
+
+
+    # Add directory selection to layout
+    main_layout.addWidget(cwd_label)
+
+    window2.setLayout(main_layout)
+
+    window2.show()
+    run()
+
+
+
 if __name__ == "__main__":
     # initialize imagej
     ij = imagej.init('sc.fiji:fiji', mode='interactive')
@@ -231,6 +241,11 @@ if __name__ == "__main__":
     window.setWindowTitle("Processingv11")
     window.resize(600, 400)
 
+
+    window2 = QWidget()
+    window2.setWindowTitle("Progress Window")
+    window2.resize(600, 400)
+
     # Create a layout
     main_layout = QVBoxLayout()
 
@@ -244,22 +259,6 @@ if __name__ == "__main__":
     # Add directory selection to layout
     main_layout.addWidget(cwd_label)
     main_layout.addWidget(select_dir_button)
-
-
-
-    # Output directory label and button
-    out_label_txt = "Output directory: "+cwd_dir
-    out_label = QLabel(out_label_txt)
-
-    select_out_dir_button = QPushButton("Select Directory")
-    select_out_dir_button.clicked.connect(get_out_directory)
-
-    # Add directory selection to layout
-    main_layout.addWidget(out_label)
-    main_layout.addWidget(select_out_dir_button)
-
-
-
 
     # Create the parameters section
     params_layout = QGridLayout()
@@ -321,10 +320,13 @@ if __name__ == "__main__":
     main_layout.addLayout(steps_layout)
 
     
+    #Create progress window
+ 
+
     # run button that connects to the run()
 
     run_button = QPushButton("Run")
-    run_button.clicked.connect(run)
+    run_button.clicked.connect(run_button_func)
     run_button.setStyleSheet("background-color: '#b6e6fc'")
     main_layout.addWidget(run_button)
 
