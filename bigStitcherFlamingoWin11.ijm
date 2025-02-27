@@ -15,29 +15,29 @@ IJ.log("---");
 IJ.log("Multi-immersion bigStitcher");
 //If no downsampling was used, set these to 1. Otherwise include the amount of downsampling used in
 // "Downsample 3D volumes.ijm"
-preloadDownsampleX=8
-preloadDownsampleY=8
-preloadDownsampleZ=16
+preloadDownsampleX=1
+preloadDownsampleY=1
+preloadDownsampleZ=1
 //set options
 setOption("ExpandableArrays", true);
 //Tile count same as file names - note that filenames start at 0
 //so value here will be the highest number+1
-x_tiles = 2;
-y_tiles = 3; 
+x_tiles = 6;
+y_tiles = 10; 
 //Voxel size currently set for CTLSM1 at LOCI, 10x objective, default settings
-x_voxel = 1.1127*preloadDownsampleX; 
-y_voxel = 1.1127*preloadDownsampleY; 
-z_voxel = 2.5*preloadDownsampleZ; 
+x_voxel = 1.1127; //*preloadDownsampleX; 
+y_voxel = 1.1127; //*preloadDownsampleY; 
+z_voxel = 2.5 ;//*preloadDownsampleZ; 
 //Should reduce this in the future.
-overlap_x=25;
-overlap_y=25;
+overlap_x=10;
+overlap_y=10;
 //need to prompt user, give defualts, and add overlap
 
 //get path and generate list of stacks
 IJ.log("-");
 IJ.log("Waiting for user input...");
 basepath = getDirectory("Select a folder");
-//basepath = "C:/ImageAnalysis/MikeNelson/20250122_140221_012125_mpeg1647_propI_2.2yrs_F/downsample"
+//basepath = "E:\CTLSFM Raw Data\20250220_085139_m00_004_CH02_tif"
 
 if (!endsWith(basepath, File.separator))
 {
@@ -55,7 +55,7 @@ if (!endsWith(basepath, File.separator))
 
 run("Define Multi-View Dataset", "define_dataset=[Automatic Loader (Bioformats based)]"+
 " project_filename=dataset.xml path=" + basepath +
-" exclude=100 pattern_0=Tiles pattern_1=Tiles pattern_2=Channels"+
+" exclude=100 pattern_0=Tiles pattern_1=Tiles pattern_2=Channels pattern_3=Illuminations"+
 " move_tiles_to_grid_(per_angle)?=[Move Tile to Grid (Macro-scriptable)] grid_type=[Up & Right]"+
 " tiles_x="+ x_tiles +" tiles_y=" +y_tiles +" tiles_z=1 overlap_x_(%)="+ overlap_x +" overlap_y_(%)="+ overlap_y +" overlap_z_(%)=10 keep_metadata_rotation"+
 " how_to_store_input_images=[Re-save as multiresolution HDF5] load_raw_data_virtually"+
